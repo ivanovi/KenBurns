@@ -9,7 +9,10 @@ import Kingfisher
  * http://www.twangnation.com/blog/http://example.com/uploads/2014/01/kenburns_portrait.jpg
  */
 
-public typealias DurationRange = (max: Double, min: Double)
+public struct DurationRange {
+	let min: Double
+	let max: Double
+}
 
 class KenBurnsAnimation : Equatable {
     let targetImage: UIImageView
@@ -119,7 +122,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     public var loops = true
     public var pansAcross = false
     public var zoomIntensity = 1.0
-    public var durationRange: DurationRange = (min: 10, max: 20)
+    public var durationRange = DurationRange(min: 10, max: 20)
 
     public var isAnimating: Bool {
         return !animations.isEmpty
@@ -194,7 +197,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
 
     // Swift can set durationRange directly, but objc needs this method to modify tuple
     public func setDuration(min: Double, max: Double) {
-        self.durationRange = (min: min, max: max)
+        self.durationRange = DurationRange(min: min, max: max)
     }
 
     func newImageView() -> UIImageView {
@@ -314,6 +317,10 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     }
     
     func queueNextImage() {
+		guard var queue = imageQueue else {
+			nextImageView.image = currentImageView.image
+			return
+		}
         if remoteQueue  {
             if imagePlaceholders == nil {
                 nextImageView.kf.setImage(with: imageURLs!.read()!, placeholder: nil, options: [.transition(.fade(0.2))])
@@ -324,7 +331,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
                 nextImageView.kf.indicatorType = .activity
             }
         } else {
-            nextImageView.image = imageQueue!.read()
+            nextImageView.image = queue.read()
         }
 
     }
