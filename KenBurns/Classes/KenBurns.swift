@@ -1,6 +1,6 @@
 import Foundation
 import UIKit
-import CalmParametricAnimations
+//import CalmParametricAnimations
 import Kingfisher
 
 /* 
@@ -59,7 +59,7 @@ class KenBurnsAnimation : Equatable {
     }
 
     var progressCurved: Double {
-        return kParametricTimeBlockAppleOut(progress)
+        return progress
     }
 
     var currentZoom: Double {
