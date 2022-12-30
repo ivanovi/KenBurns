@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
 	name: "KenBurns",
 	platforms: [
-		.iOS(.v14)
+		.iOS(.v12)
 	],
 	products: [
 		.library(
@@ -15,7 +15,7 @@ let package = Package(
 	],
 	dependencies: [
 		.package(url: "git@github.com:onevcat/Kingfisher.git",
-			.upToNextMajor(from: "5.0.0"))],
+			.upToNextMajor(from: "7.4.0"))],
 	targets: [.target(name: "KenBurns",
 					  dependencies: ["Kingfisher", "CalmParametricAnimations"],
 					  path: "KenBurns/Classes"),

@@ -24,3 +24,4 @@ DerivedData
 # Bundler
 .bundle
 .swiftpm
+Package.resolved
