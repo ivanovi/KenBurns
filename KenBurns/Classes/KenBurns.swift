@@ -317,22 +317,24 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     }
     
     func queueNextImage() {
-		guard var queue = imageQueue else {
-			nextImageView.image = currentImageView.image
-			return
-		}
-        if remoteQueue  {
+        if remoteQueue, var imageURLs {
             if imagePlaceholders == nil {
-                nextImageView.kf.setImage(with: imageURLs!.read()!, placeholder: nil, options: [.transition(.fade(0.2))])
+                nextImageView.kf.setImage(with: imageURLs.read()!,
+										  placeholder: nil,
+										  options: [.transition(.fade(0.2))])
                 nextImageView.kf.indicatorType = .activity
 
             } else {
-                nextImageView.kf.setImage(with: imageURLs!.read()!, placeholder: nil, options: [.transition(.fade(0.2))])
+                nextImageView.kf.setImage(with: imageURLs.read()!,
+										  placeholder: nil,
+										  options: [.transition(.fade(0.2))])
                 nextImageView.kf.indicatorType = .activity
             }
-        } else {
-            nextImageView.image = queue.read()
-        }
+        } else if var imageQueue {
+            nextImageView.image = imageQueue.read()
+		} else {
+			assertionFailure("Unexpected state image queueing state.")
+		}
 
     }
 
