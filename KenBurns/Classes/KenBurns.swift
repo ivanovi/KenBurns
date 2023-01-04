@@ -316,27 +316,24 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         startNewAnimation()
     }
     
-    func queueNextImage() {
-        if remoteQueue, var imageURLs {
-            if imagePlaceholders == nil {
-                nextImageView.kf.setImage(with: imageURLs.read()!,
+	func queueNextImage() {
+		if remoteQueue {
+			if imagePlaceholders == nil {
+				nextImageView.kf.setImage(with: imageURLs!.read()!,
 										  placeholder: nil,
 										  options: [.transition(.fade(0.2))])
-                nextImageView.kf.indicatorType = .activity
-
-            } else {
-                nextImageView.kf.setImage(with: imageURLs.read()!,
+				nextImageView.kf.indicatorType = .activity
+				
+			} else {
+				nextImageView.kf.setImage(with: imageURLs!.read()!,
 										  placeholder: nil,
 										  options: [.transition(.fade(0.2))])
-                nextImageView.kf.indicatorType = .activity
-            }
-        } else if var imageQueue {
-            nextImageView.image = imageQueue.read()
+				nextImageView.kf.indicatorType = .activity
+			}
 		} else {
-			assertionFailure("Unexpected state image queueing state.")
+			nextImageView.image = imageQueue?.read()
 		}
-
-    }
+	}
 
     func swapCurrentAndNext() {
         bringSubviewToFront(currentImageView)
