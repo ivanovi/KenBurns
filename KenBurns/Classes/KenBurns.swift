@@ -321,25 +321,19 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
 
     func willFadeOutAnimation(_ animation: KenBurnsAnimation) {
         swapCurrentAndNext()
-        startNewAnimation()
+		startNewAnimation(durationRange: durationRange)
     }
     
 	func queueNextImage() {
-		if remoteQueue {
-			if imagePlaceholders == nil {
-				nextImageView.kf.setImage(with: imageURLs!.read()!,
-										  placeholder: nil,
-										  options: [.transition(.fade(0.2))])
-				nextImageView.kf.indicatorType = .activity
-				
-			} else {
-				nextImageView.kf.setImage(with: imageURLs!.read()!,
-										  placeholder: nil,
-										  options: [.transition(.fade(0.2))])
-				nextImageView.kf.indicatorType = .activity
-			}
+		if remoteQueue, imageURLs?.isEmpty == Optional(false)  {
+			nextImageView.kf.setImage(with: imageURLs!.read()!,
+									  placeholder: nil,
+									  options: [.transition(.fade(0.2))])
+			nextImageView.kf.indicatorType = .activity
+		} else if imageQueue != nil {
+			nextImageView.image = imageQueue!.read() // force unwrap required as .read() mutates the queue
 		} else {
-			nextImageView.image = imageQueue?.read()
+			nextImageView.image = currentImageView.image
 		}
 	}
 
