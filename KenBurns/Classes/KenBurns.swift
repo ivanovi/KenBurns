@@ -18,20 +18,23 @@ class KenBurnsAnimation : Equatable {
     let targetImage: UIImageView
 
     var startTime: TimeInterval
-    var duration: TimeInterval
+    var duration: TimeInterval = 0
 
     let offsets: (x: Double, y: Double)
     let zoom: Double
 
-    let fadeOutDuration: TimeInterval = 2.0
+    let fadeOutDuration: TimeInterval = 1.0
 
     var completion: ((_ animation: KenBurnsAnimation) -> ())?
     var willFadeOut: ((_ animation: KenBurnsAnimation) -> ())?
 
-    init(targetImage: UIImageView, zoomIntensity: Double, durationRange: DurationRange, pansAcross: Bool) {
+    init(targetImage: UIImageView, zoomIntensity: Double, durationRange: DurationRange?, pansAcross: Bool) {
         self.targetImage = targetImage
 
-        duration = Random.double(durationRange.min, durationRange.max)
+		if let durationRange {
+			duration = Random.double(durationRange.min, durationRange.max)
+		}
+
         startTime = CACurrentMediaTime()
 
         let zoomMin = 1 + (0.3 * zoomIntensity)
@@ -58,10 +61,12 @@ class KenBurnsAnimation : Equatable {
     }
     
     var progress: Double {
+		guard duration > 0 else { return 1 }
         return (CACurrentMediaTime() - startTime) / duration
     }
 
     var progressCurved: Double {
+		guard duration > 0 else { return 1 }
 		return kParametricTimeBlockAppleOut(progress)
     }
 
@@ -101,7 +106,7 @@ class KenBurnsAnimation : Equatable {
     }
     
     func forceFadeOut() {
-        self.duration = CACurrentMediaTime() - startTime + 2.0
+        self.duration = CACurrentMediaTime() - startTime + fadeOutDuration
     }
 
     func callCompletionIfNecessary() {
@@ -212,7 +217,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         }
 
         updatesDisplayLink.add(to: RunLoop.main, forMode: .common)
-        startNewAnimation()
+		startNewAnimation(durationRange: nil)
     }
     
     public func setImageQueue(withImages images:[UIImage]) {
@@ -287,10 +292,13 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         updatesDisplayLink.isPaused = false
     }
 
-    func startNewAnimation() {
+	func startNewAnimation(durationRange: DurationRange?) {
         currentImageView.transform = CGAffineTransform.identity
         currentImageView.size = self.size
-        let animation = KenBurnsAnimation(targetImage: currentImageView, zoomIntensity: zoomIntensity, durationRange: durationRange, pansAcross: pansAcross)
+        let animation = KenBurnsAnimation(targetImage: currentImageView,
+										  zoomIntensity: zoomIntensity,
+										  durationRange: durationRange,
+										  pansAcross: pansAcross)
         animation.completion = self.didFinishAnimation
         animation.willFadeOut = self.willFadeOutAnimation
         animations.append(animation)
