@@ -15,7 +15,7 @@ public struct DurationRange {
 }
 
 class KenBurnsAnimation : Equatable {
-    let targetImage: UIImageView
+    unowned var targetImage: UIImageView
 
     var startTime: TimeInterval
     var duration: TimeInterval = 0
@@ -124,6 +124,20 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
 }
 
 @objc public class KenBurnsImageView: UIView {
+
+	private class AnimationHandler: NSObject {
+		var handler: () -> Void
+
+		init(handler: @escaping () -> Void) {
+			self.handler = handler
+			super.init()
+		}
+
+		@objc func handleAnimation() {
+			handler()
+		}
+	}
+
     public var loops = true
     public var pansAcross = false
     public var zoomIntensity = 1.0
@@ -142,7 +156,12 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     }()
     
     lazy var updatesDisplayLink: CADisplayLink = {
-        return CADisplayLink(target: self, selector: #selector(updateAllAnimations))
+
+		let handler = AnimationHandler { [weak self] in
+			self?.updateAllAnimations()
+		}
+		return CADisplayLink(target: handler,
+							 selector: #selector(AnimationHandler.handleAnimation))
     }()
 
     var animations: [KenBurnsAnimation] = []
@@ -155,13 +174,13 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     
     var index = -1
     private var remoteQueue = false
+	private var bufferedURLs = [URL]()
 
     public init() {
         super.init(frame: .zero)
 
         isUserInteractionEnabled = false
         clipsToBounds = true
-        
 
         addSubview(nextImageView)
         addSubview(currentImageView)
@@ -182,10 +201,6 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         
         addSubview(nextImageView)
         addSubview(currentImageView)
-    }
-
-    deinit {
-        stopAnimating()
     }
 
     public func setImage(_ image: UIImage) {
@@ -237,10 +252,8 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     }
     
     public func setImageQueue(withUrls urls:[URL], placeholders: [UIImage]?) {
-        guard placeholders == nil || placeholders?.count == urls.count else {
-            fatalError("You don't have a placeholder for every image!")
-        }
-        
+		guard urls != bufferedURLs else { return }
+
         remoteQueue = true
         self.imageURLs = RingBuffer<URL>(count: urls.count)
         self.imagePlaceholders = RingBuffer<UIImage>(count: urls.count)
@@ -250,12 +263,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         }
         
         self.fetchImage(self.imageURLs!.read()!, placeholder: nil)
-        
-        if placeholders != nil {
-            for p in placeholders! {
-                self.imagePlaceholders!.write(p)
-            }
-        }
+		bufferedURLs = urls
         
         index = 0
         
@@ -299,8 +307,12 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
 										  zoomIntensity: zoomIntensity,
 										  durationRange: durationRange,
 										  pansAcross: pansAcross)
-        animation.completion = self.didFinishAnimation
-        animation.willFadeOut = self.willFadeOutAnimation
+		animation.completion = { [weak self] a in
+			self?.didFinishAnimation(a)
+		}
+		animation.willFadeOut = { [weak self] a in
+			self?.willFadeOutAnimation(a)
+		}
         animations.append(animation)
     }
 

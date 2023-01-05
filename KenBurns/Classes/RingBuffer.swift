@@ -36,6 +36,7 @@ public struct RingBuffer<T> {
     public var count : Int {
         return array.count
     }
+
   public var isEmpty: Bool {
     return array.isEmpty
   }
