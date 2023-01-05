@@ -203,13 +203,13 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         addSubview(currentImageView)
     }
 
-    public func setImage(_ image: UIImage) {
+    private func setImage(_ image: UIImage) {
         index = -1
         currentImageView.image = image
         nextImageView.image = image
     }
 
-    public func fetchImage(_ url: URL, placeholder: UIImage?) {
+    private func fetchImage(_ url: URL, placeholder: UIImage?) {
         [ currentImageView, nextImageView ].forEach {
             $0.kf.setImage(with: url, placeholder: placeholder, options: [.transition(.fade(0.2))])
         }
@@ -220,7 +220,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         self.durationRange = DurationRange(min: min, max: max)
     }
 
-    func newImageView() -> UIImageView {
+    private func newImageView() -> UIImageView {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         return imageView
@@ -234,29 +234,12 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         updatesDisplayLink.add(to: RunLoop.main, forMode: .common)
 		startNewAnimation(durationRange: nil)
     }
-    
-    public func setImageQueue(withImages images:[UIImage]) {
-        if images.count == 0 {
-            fatalError("This is an empty queue!")
-        }
-        
-        remoteQueue = false
-        index = 0
-        self.imageQueue = RingBuffer(count: images.count)
-        
-        for i in images {
-            self.imageQueue?.write(i)
-        }
-        
-        queueNextImage()
-    }
-    
-    public func setImageQueue(withUrls urls:[URL], placeholders: [UIImage]?) {
+
+    public func setImageQueue(withUrls urls:[URL]) {
 		guard urls != bufferedURLs else { return }
 
         remoteQueue = true
         self.imageURLs = RingBuffer<URL>(count: urls.count)
-        self.imagePlaceholders = RingBuffer<UIImage>(count: urls.count)
         
         for u in urls {
             self.imageURLs?.write(u)
@@ -300,7 +283,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         updatesDisplayLink.isPaused = false
     }
 
-	func startNewAnimation(durationRange: DurationRange?) {
+	private func startNewAnimation(durationRange: DurationRange?) {
         currentImageView.transform = CGAffineTransform.identity
         currentImageView.size = self.size
         let animation = KenBurnsAnimation(targetImage: currentImageView,
@@ -316,27 +299,27 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
         animations.append(animation)
     }
 
-    @objc func updateAllAnimations() {
+    @objc private func updateAllAnimations() {
         animations.forEach {
             $0.update(self.w, self.h)
         }
     }
 
-    func didFinishAnimation(_ animation: KenBurnsAnimation) {
+	private func didFinishAnimation(_ animation: KenBurnsAnimation) {
         animations.remove(animation)
         queueNextImage()
     }
     
-    func nextImage() {
+	private func nextImage() {
         animations[0].forceFadeOut()
     }
 
-    func willFadeOutAnimation(_ animation: KenBurnsAnimation) {
+	private func willFadeOutAnimation(_ animation: KenBurnsAnimation) {
         swapCurrentAndNext()
 		startNewAnimation(durationRange: durationRange)
     }
     
-	func queueNextImage() {
+	private func queueNextImage() {
 		if remoteQueue, imageURLs?.isEmpty == Optional(false)  {
 			nextImageView.kf.setImage(with: imageURLs!.read()!,
 									  placeholder: nil,
@@ -349,7 +332,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
 		}
 	}
 
-    func swapCurrentAndNext() {
+	private func swapCurrentAndNext() {
         bringSubviewToFront(currentImageView)
         insertSubview(nextImageView, belowSubview: currentImageView)
 
