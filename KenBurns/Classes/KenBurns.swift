@@ -14,6 +14,10 @@ public struct DurationRange {
 	let max: Double
 }
 
+public enum R {
+	public static let fadeDuration = TimeInterval(1)
+}
+
 class KenBurnsAnimation : Equatable {
     unowned var targetImage: UIImageView
 
@@ -23,7 +27,7 @@ class KenBurnsAnimation : Equatable {
     let offsets: (x: Double, y: Double)
     let zoom: Double
 
-    let fadeOutDuration: TimeInterval = 1.0
+	let fadeOutDuration = R.fadeDuration
 
     var completion: ((_ animation: KenBurnsAnimation) -> ())?
     var willFadeOut: ((_ animation: KenBurnsAnimation) -> ())?
