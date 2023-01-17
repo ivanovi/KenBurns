@@ -123,6 +123,10 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
 }
 
+public protocol KenBurnsImageDelegate: AnyObject {
+	func animationDidFinish(completedIndex: Int, nextDuration: Double)
+}
+
 @objc public class KenBurnsImageView: UIView {
 
 	private class AnimationHandler: NSObject {
@@ -171,7 +175,9 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
     var imageQueue : RingBuffer<UIImage>? = nil
     var imageURLs : RingBuffer<URL>? = nil
     var imagePlaceholders : RingBuffer<UIImage>? = nil
-    
+
+	public weak var delegate: KenBurnsImageDelegate?
+
     var index = -1
     private var remoteQueue = false
 	private var bufferedURLs = [URL]()
@@ -249,7 +255,7 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
 		bufferedURLs = urls
         
         index = 0
-        
+
         queueNextImage()
     }
 
@@ -308,6 +314,12 @@ func ==(lhs: KenBurnsAnimation, rhs: KenBurnsAnimation) -> Bool {
 	private func didFinishAnimation(_ animation: KenBurnsAnimation) {
         animations.remove(animation)
         queueNextImage()
+
+		let imagesIdx = imageURLs?.index ?? 0
+		let imagesCount = imageURLs?.count ?? 0
+		let completedIdx = imagesCount > 0 ? max(imagesIdx - 2, 0) % imagesCount : 0
+		delegate?.animationDidFinish(completedIndex: completedIdx,
+									 nextDuration: animations.first?.duration ?? 0)
     }
     
 	private func nextImage() {

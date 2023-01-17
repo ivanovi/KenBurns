@@ -33,13 +33,17 @@ public struct RingBuffer<T> {
     return writeIndex - readIndex
   }
 
-    public var count : Int {
-        return array.count
-    }
+	public var count : Int {
+		return array.count
+	}
 
   public var isEmpty: Bool {
     return array.isEmpty
   }
+
+	var index: Int {
+		readIndex
+	}
 
   fileprivate var availableSpaceForWriting: Int {
     return array.count - availableSpaceForReading
